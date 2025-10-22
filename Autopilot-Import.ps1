@@ -10,7 +10,7 @@ Write-Host "===================================`n" -ForegroundColor Yellow
 # 1️⃣ Ensure admin privileges
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     Write-Host "Restarting PowerShell as Administrator..." -ForegroundColor Red
-    Start-Process PowerShell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"iwr -useb https://raw.githubusercontent.com/YasserBoutarf/Wolf-Autopilot/main/Autopilot-Import.ps1 | iex`""
+    Start-Process PowerShell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"iwr -useb https://raw.githubusercontent.com/YasserABoutarf/Wolf-Autopilot/main/Autopilot-Import.ps1 | iex`""
     exit
 }
 
@@ -26,13 +26,15 @@ Install-Script -Name Get-WindowsAutopilotInfo -Force -Confirm:$false | Out-Null
 Write-Host "Setting Execution Policy..." -ForegroundColor Cyan
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process -Force | Out-Null
 
-# 5️⃣ Verify internet connection (Ethernet)
+# 5️⃣ Verify internet connection (Ethernet via HTTPS test)
 Write-Host "Checking network connection..." -ForegroundColor Cyan
-if (!(Test-Connection -ComputerName "microsoft.com" -Count 1 -Quiet)) {
-    Write-Host "⚠️ No internet detected! Please connect via Ethernet and re-run this script." -ForegroundColor Red
-    exit
-} else {
+try {
+    $null = Invoke-WebRequest -Uri "https://www.microsoft.com" -UseBasicParsing -TimeoutSec 10
     Write-Host "✅ Internet connection verified." -ForegroundColor Green
+}
+catch {
+    Write-Host "⚠️ Internet test failed. Please confirm Ethernet is connected and try again." -ForegroundColor Red
+    exit
 }
 
 # 6️⃣ Import device into Autopilot
@@ -49,4 +51,3 @@ Write-Host "`n-----------------------------------" -ForegroundColor Yellow
 Write-Host "Autopilot Import Complete!" -ForegroundColor Green
 Write-Host "You may now proceed to tagging in Intune." -ForegroundColor Yellow
 Write-Host "-----------------------------------`n" -ForegroundColor Yellow
-
