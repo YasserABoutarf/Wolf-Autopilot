@@ -20,7 +20,7 @@ Write-Host " Wolf & Co. - Dell Command Update " -ForegroundColor Cyan
 Write-Host "===================================`n" -ForegroundColor Yellow
 
 # Prefer F: drive, fallback to UNC path if inaccessible
-$sourceDellPath = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4"
+$sourceDellPath = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4\Dell-Command-Update-Application_6VFWW_WIN_5.4.0_A00 (1).EXE"
 if (-not (Test-Path $sourceDellPath)) {
     $sourceDellPath = "\\wolfco.local\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4"
     Write-Host "⚠️ F: drive not available, using UNC path: $sourceDellPath"
