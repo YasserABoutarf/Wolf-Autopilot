@@ -98,9 +98,9 @@ Write-Host "`n===================================" -ForegroundColor Yellow
 Write-Host " Wolf & Co. - ScreenConnect Installer " -ForegroundColor Cyan
 Write-Host "===================================`n" -ForegroundColor Yellow
 
-$sourceScreenPath = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\CW Installs"
+$sourceScreenPath = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\CW Installs\BostonScreenConnect.ClientSetup.msi"
 if (-not (Test-Path $sourceScreenPath)) {
-    $sourceScreenPath = "\\wolfco.local\ADMIN\IS - Public\IS Department Team Folders\ZachH\CW Installs"
+    $sourceScreenPath = "\\wolfco.local\ADMIN\IS - Public\IS Department Team Folders\ZachH\CW Installs\BostonScreenConnect.ClientSetup.msi"
     Write-Host "⚠️ F: drive not available, using UNC path: $sourceScreenPath"
 }
 $fileName = "BostonScreenConnect.ClientSetup.msi"
