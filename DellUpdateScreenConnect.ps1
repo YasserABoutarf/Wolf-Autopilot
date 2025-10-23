@@ -19,21 +19,21 @@ Write-Host "`n===================================" -ForegroundColor Yellow
 Write-Host " Wolf & Co. - Dell Command Update " -ForegroundColor Cyan
 Write-Host "===================================`n" -ForegroundColor Yellow
 
-# Prefer F: drive, fallback to UNC path if inaccessible
-$sourceDellPath = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4\Dell-Command-Update-Application_6VFWW_WIN_5.4.0_A00 (1).EXE"
-if (-not (Test-Path $sourceDellPath)) {
-    $sourceDellPath = "\\wolfco.local\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4\Dell-Command-Update-Application_6VFWW_WIN_5.4.0_A00 (1).EXE"
-    Write-Host "⚠️ F: drive not available, using UNC path: $sourceDellPath"
+# Exact file path for Dell Command Update
+$sourceDellFile = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4\Dell-Command-Update-Application_6VFWW_WIN_5.4.0_A00 (1).EXE"
+if (-not (Test-Path $sourceDellFile)) {
+    $sourceDellFile = "\\wolfco.local\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4\Dell-Command-Update-Application_6VFWW_WIN_5.4.0_A00 (1).EXE"
+    Write-Host "⚠️ F: drive not available, using UNC path: $sourceDellFile"
 }
 
-$dellInstaller = Get-ChildItem -Path $sourceDellPath -Filter "*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-if (-not $dellInstaller) {
-    Write-Host "❌ Dell Command Update installer not found in $sourceDellPath" -ForegroundColor Red
+if (-not (Test-Path $sourceDellFile)) {
+    Write-Host "❌ Dell Command Update installer not found at $sourceDellFile" -ForegroundColor Red
     pause
     exit 1
 }
+
 $localDell = "$env:TEMP\DellCommandUpdate.exe"
-Copy-Item -Path $dellInstaller.FullName -Destination $localDell -Force
+Copy-Item -Path $sourceDellFile -Destination $localDell -Force
 Write-Host "✅ Copied Dell Command Update installer to temp."
 
 # Create progress UI
@@ -71,7 +71,7 @@ function Update-ProgressUI($percent, $message) {
     })
 }
 
-# Run Dell Command Update (with visible admin prompt)
+# Run Dell Command Update with visible admin prompt
 try {
     Update-ProgressUI 20 "Launching Dell Command Update installer..."
     Start-Process -FilePath $localDell -Verb RunAs -Wait
@@ -98,18 +98,24 @@ Write-Host "`n===================================" -ForegroundColor Yellow
 Write-Host " Wolf & Co. - ScreenConnect Installer " -ForegroundColor Cyan
 Write-Host "===================================`n" -ForegroundColor Yellow
 
-$sourceScreenPath = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\CW Installs\BostonScreenConnect.ClientSetup.msi"
-if (-not (Test-Path $sourceScreenPath)) {
-    $sourceScreenPath = "\\wolfco.local\ADMIN\IS - Public\IS Department Team Folders\ZachH\CW Installs\BostonScreenConnect.ClientSetup.msi"
-    Write-Host "⚠️ F: drive not available, using UNC path: $sourceScreenPath"
+# Exact file path for ScreenConnect
+$sourceScreenFile = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\CW Installs\BostonScreenConnect.ClientSetup.msi"
+if (-not (Test-Path $sourceScreenFile)) {
+    $sourceScreenFile = "\\wolfco.local\ADMIN\IS - Public\IS Department Team Folders\ZachH\CW Installs\BostonScreenConnect.ClientSetup.msi"
+    Write-Host "⚠️ F: drive not available, using UNC path: $sourceScreenFile"
 }
-$fileName = "BostonScreenConnect.ClientSetup.msi"
-$sourceFile = Join-Path $sourceScreenPath $fileName
-$localFile = "$env:TEMP\$fileName"
+
+if (-not (Test-Path $sourceScreenFile)) {
+    [System.Windows.MessageBox]::Show("❌ ScreenConnect installer not found at $sourceScreenFile", "Wolf & Co Installer", 'OK', 'Error')
+    pause
+    exit 1
+}
+
+$localFile = "$env:TEMP\BostonScreenConnect.ClientSetup.msi"
 
 try {
     Update-ProgressUI 10 "Copying ScreenConnect installer..."
-    Copy-Item -Path $sourceFile -Destination $localFile -Force
+    Copy-Item -Path $sourceScreenFile -Destination $localFile -Force
     Start-Sleep -Seconds 1
     Update-ProgressUI 40 "Launching ScreenConnect installer..."
     Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$localFile`"" -Verb RunAs -Wait
