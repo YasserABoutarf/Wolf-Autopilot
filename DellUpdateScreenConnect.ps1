@@ -1,8 +1,11 @@
-# =====================================================
-# Wolf & Co. - Unified Installer (Admin Prompt Version)
+# ===========================================
+# Wolf & Co. - Dell Command Update + ScreenConnect Installer
 # Author: Yasser Boutarf
-# Purpose: Install Dell Command Update + ScreenConnect from F drive (non-silent)
-# =====================================================
+# ===========================================
+
+Write-Host "`n===================================" -ForegroundColor Yellow
+Write-Host "Wolf & Co. - Laptop Auto Installer" -ForegroundColor Cyan
+Write-Host "===================================`n" -ForegroundColor Yellow
 
 # 1️⃣ Ensure Admin Privileges
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
@@ -12,125 +15,83 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
     exit
 }
 
-# ===========================================
-# Section 1: Dell Command Update
-# ===========================================
-Write-Host "`n===================================" -ForegroundColor Yellow
-Write-Host " Wolf & Co. - Dell Command Update " -ForegroundColor Cyan
-Write-Host "===================================`n" -ForegroundColor Yellow
+# 2️⃣ Paths
+$DellCmdExe = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4\Dell-Command-Update-Application_6VFWW_WIN_5.4.0_A00 (1).EXE"
+$ScreenConnectMsi = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\CW Installs\BostonScreenConnect.ClientSetup.msi"
 
-# Exact file path for Dell Command Update
-$sourceDellFile = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4\Dell-Command-Update-Application_6VFWW_WIN_5.4.0_A00 (1).EXE"
-if (-not (Test-Path $sourceDellFile)) {
-    $sourceDellFile = "\\wolfco.local\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4\Dell-Command-Update-Application_6VFWW_WIN_5.4.0_A00 (1).EXE"
-    Write-Host "⚠️ F: drive not available, using UNC path: $sourceDellFile"
+# Local permanent folder
+$LocalDir = "C:\WolfInstallers"
+$Log = Join-Path $LocalDir "InstallLog_$(Get-Date -Format 'yyyyMMdd_HHmmss').txt"
+
+# Create folder if missing
+New-Item -Path $LocalDir -ItemType Directory -Force | Out-Null
+
+Function Log {
+    param([string]$Message)
+    $time = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    "$time`t$Message" | Tee-Object -FilePath $Log -Append
 }
 
-if (-not (Test-Path $sourceDellFile)) {
-    Write-Host "❌ Dell Command Update installer not found at $sourceDellFile" -ForegroundColor Red
-    pause
-    exit 1
-}
+Function Copy-WithCred {
+    param([string]$SourcePath)
+    $dest = Join-Path $LocalDir (Split-Path $SourcePath -Leaf)
 
-$localDell = "$env:TEMP\DellCommandUpdate.exe"
-Copy-Item -Path $sourceDellFile -Destination $localDell -Force
-Write-Host "✅ Copied Dell Command Update installer to temp."
-
-# Create progress UI
-Add-Type -AssemblyName PresentationFramework
-Add-Type -AssemblyName PresentationCore
-$window = New-Object System.Windows.Window
-$window.Title = "Wolf & Co Installer"
-$window.Height = 150
-$window.Width = 420
-$window.WindowStartupLocation = "CenterScreen"
-$window.ResizeMode = "NoResize"
-$window.Topmost = $true
-
-$stack = New-Object System.Windows.Controls.StackPanel
-$text = New-Object System.Windows.Controls.TextBlock
-$text.FontSize = 14
-$text.Margin = "0,10,0,10"
-$text.HorizontalAlignment = "Center"
-$text.Text = "Starting installation..."
-$bar = New-Object System.Windows.Controls.ProgressBar
-$bar.Height = 25
-$bar.Width = 360
-$bar.Minimum = 0
-$bar.Maximum = 100
-$bar.Value = 0
-$stack.Children.Add($text)
-$stack.Children.Add($bar)
-$window.Content = $stack
-$null = $window.Show()
-
-function Update-ProgressUI($percent, $message) {
-    $window.Dispatcher.Invoke({
-        $bar.Value = $percent
-        $text.Text = $message
-    })
-}
-
-# Run Dell Command Update with visible admin prompt
-try {
-    Update-ProgressUI 20 "Launching Dell Command Update installer..."
-    Start-Process -FilePath $localDell -Verb RunAs -Wait
-    Update-ProgressUI 70 "Verifying installation..."
-    $dcuPath = "C:\Program Files\Dell\CommandUpdate\dcu-ui.exe"
-    if (Test-Path $dcuPath) {
-        Update-ProgressUI 100 "✅ Dell Command Update installed successfully!"
-        Start-Sleep -Seconds 2
-        Start-Process -FilePath $dcuPath
+    if (Test-Path $SourcePath) {
+        Write-Host "Copying $SourcePath..." -ForegroundColor Yellow
+        try {
+            Copy-Item -Path $SourcePath -Destination $dest -Force
+            Log "Copied $SourcePath to $dest"
+        } catch {
+            Log "Copy failed: $_"
+        }
     } else {
-        [System.Windows.MessageBox]::Show("⚠️ Dell Command Update installed but GUI not found.", "Wolf & Co Installer", 'OK', 'Warning')
+        # Fallback UNC form if F: drive not visible
+        $uncPath = $SourcePath -replace '^F:', '\\wolf.local\ADMIN'
+        Write-Host "Attempting UNC path: $uncPath" -ForegroundColor Yellow
+        $cred = Get-Credential -Message "Enter credentials to access $uncPath (Local Admin)"
+        try {
+            New-PSDrive -Name "TempF" -PSProvider FileSystem -Root (Split-Path $uncPath -Parent) -Credential $cred -ErrorAction Stop | Out-Null
+            Copy-Item -Path ("TempF:\" + (Split-Path $uncPath -Leaf)) -Destination $dest -Force
+            Remove-PSDrive -Name "TempF" -Force
+            Log "Copied via UNC to $dest"
+        } catch {
+            Log "UNC copy failed: $_"
+        }
     }
-} catch {
-    [System.Windows.MessageBox]::Show("❌ Dell Command Update failed: $($_.Exception.Message)", "Wolf & Co Installer", 'OK', 'Error')
-    $window.Close()
-    pause
-    exit 1
+    return $dest
 }
 
-# ===========================================
-# Section 2: ScreenConnect Client Installer
-# ===========================================
-Write-Host "`n===================================" -ForegroundColor Yellow
-Write-Host " Wolf & Co. - ScreenConnect Installer " -ForegroundColor Cyan
-Write-Host "===================================`n" -ForegroundColor Yellow
+# 3️⃣ Copy installers to local C: folder
+$dellLocal = Copy-WithCred $DellCmdExe
+$scLocal   = Copy-WithCred $ScreenConnectMsi
 
-# Exact file path for ScreenConnect
-$sourceScreenFile = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\CW Installs\BostonScreenConnect.ClientSetup.msi"
-if (-not (Test-Path $sourceScreenFile)) {
-    $sourceScreenFile = "\\wolfco.local\ADMIN\IS - Public\IS Department Team Folders\ZachH\CW Installs\BostonScreenConnect.ClientSetup.msi"
-    Write-Host "⚠️ F: drive not available, using UNC path: $sourceScreenFile"
-}
-
-if (-not (Test-Path $sourceScreenFile)) {
-    [System.Windows.MessageBox]::Show("❌ ScreenConnect installer not found at $sourceScreenFile", "Wolf & Co Installer", 'OK', 'Error')
-    pause
-    exit 1
-}
-
-$localFile = "$env:TEMP\BostonScreenConnect.ClientSetup.msi"
-
-try {
-    Update-ProgressUI 10 "Copying ScreenConnect installer..."
-    Copy-Item -Path $sourceScreenFile -Destination $localFile -Force
-    Start-Sleep -Seconds 1
-    Update-ProgressUI 40 "Launching ScreenConnect installer..."
-    Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$localFile`"" -Verb RunAs -Wait
-    Update-ProgressUI 80 "Verifying ScreenConnect service..."
-    $svc = Get-Service -Name "ScreenConnect Client*" -ErrorAction SilentlyContinue
-    if ($svc) {
-        Update-ProgressUI 100 "✅ ScreenConnect installed successfully!"
-        [System.Windows.MessageBox]::Show("✅ ScreenConnect Client installed successfully!", "Wolf & Co Installer", 'OK', 'Information')
-    } else {
-        [System.Windows.MessageBox]::Show("⚠️ ScreenConnect installed but service not detected.", "Wolf & Co Installer", 'OK', 'Warning')
+# 4️⃣ Install Dell Command Update (.EXE)
+if (Test-Path $dellLocal) {
+    Write-Host "`nInstalling Dell Command Update..." -ForegroundColor Cyan
+    try {
+        Start-Process -FilePath $dellLocal -ArgumentList "/S" -Wait -PassThru | Out-Null
+        Log "Dell Command Update installed successfully."
+    } catch {
+        Log "Dell Command Update install failed: $_"
     }
-} catch {
-    [System.Windows.MessageBox]::Show("❌ ScreenConnect installation failed: $($_.Exception.Message)", "Wolf & Co Installer", 'OK', 'Error')
+} else {
+    Log "Dell installer not found!"
 }
 
-$window.Close()
-Write-Host "`n🎉 All installations complete! You can now close this window." -ForegroundColor Cyan
-pause
+# 5️⃣ Install ScreenConnect (.MSI)
+if (Test-Path $scLocal) {
+    Write-Host "`nInstalling ScreenConnect Client..." -ForegroundColor Cyan
+    try {
+        Start-Process msiexec.exe -ArgumentList "/i `"$scLocal`" /qn /norestart" -Wait -PassThru | Out-Null
+        Log "ScreenConnect installed successfully."
+    } catch {
+        Log "ScreenConnect install failed: $_"
+    }
+} else {
+    Log "ScreenConnect MSI not found!"
+}
+
+# 6️⃣ Finish
+Write-Host "`nAll tasks completed successfully." -ForegroundColor Green
+Write-Host "Installers saved at: $LocalDir" -ForegroundColor Yellow
+Write-Host "Log file saved at: $Log" -ForegroundColor Yellow
