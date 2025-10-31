@@ -7,43 +7,43 @@ Write-Host "`n===================================" -ForegroundColor Yellow
 Write-Host "Starting Wolf & Co Autopilot Import..." -ForegroundColor Cyan
 Write-Host "===================================`n" -ForegroundColor Yellow
 
-# 1️⃣ Ensure admin privileges
+# admin privelages needed
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     Write-Host "Restarting PowerShell as Administrator..." -ForegroundColor Red
     Start-Process PowerShell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"iwr -useb https://raw.githubusercontent.com/YasserABoutarf/Wolf-Autopilot/main/Autopilot-Import.ps1 | iex`""
     exit
 }
 
-# 2️⃣ Install NuGet provider silently
+# installs nuget provider
 Write-Host "Installing NuGet provider..." -ForegroundColor Cyan
 Install-PackageProvider -Name NuGet -Force -Confirm:$false | Out-Null
 
-# 3️⃣ Install the Windows Autopilot script silently
+# installs window autopilot
 Write-Host "Installing Windows Autopilot module..." -ForegroundColor Cyan
 Install-Script -Name Get-WindowsAutopilotInfo -Force -Confirm:$false | Out-Null
 
-# 4️⃣ Set execution policy for current session
+# sets execution policy
 Write-Host "Setting Execution Policy..." -ForegroundColor Cyan
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process -Force | Out-Null
 
-# 5️⃣ Verify internet connection (Ethernet via HTTPS test)
-Write-Host "Checking network connection..." -ForegroundColor Cyan
+# internet connection is required via ethernet so that we can pull from  web
+Write-Host "checking network connection..." -ForegroundColor Cyan
 try {
     $null = Invoke-WebRequest -Uri "https://www.microsoft.com" -UseBasicParsing -TimeoutSec 10
-    Write-Host "✅ Internet connection verified." -ForegroundColor Green
+    Write-Host "internet connection verified." -ForegroundColor Green
 }
 catch {
-    Write-Host "⚠️ Internet test failed. Please confirm Ethernet is connected and try again." -ForegroundColor Red
+    Write-Host "internet test failed. Please confirm Ethernet is connected and try again." -ForegroundColor Red
     exit
 }
 
-# 6️⃣ Import device into Autopilot
+# once email is entered device will begin to import
 Write-Host "`nImporting device into Autopilot..." -ForegroundColor Cyan
 try {
     Get-WindowsAutopilotInfo -Online
-    Write-Host "`n✅ Device successfully imported into Autopilot!" -ForegroundColor Green
+    Write-Host "`nDevice successfully imported into Autopilot!" -ForegroundColor Green
 } catch {
-    Write-Host "`n❌ Error importing device. Details:" -ForegroundColor Red
+    Write-Host "`n Error importing device. Details:" -ForegroundColor Red
     Write-Host $_
 }
 
