@@ -7,3 +7,4 @@ if (Test-Path $installerPath) {
     Write-Host "Setup completed."
 } else {
     Write-Host "Installer not found at path: $installerPath"
+}
