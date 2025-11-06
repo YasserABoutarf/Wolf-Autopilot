@@ -1,18 +1,9 @@
-$installerPath = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4\DellCommandUpdate.EXE"
 $installerPath1 = "F:\APPS\TValue 6\TValue6-02-Setup.exe"
 $installerPath2 = "F:\APPS\CaseWare\Caseware 2023\ConnectorSetup.exe"
 $installerPath3 = "F:\APPS\CaseWare\Caseware 2023\WP2023USSYNC_630DD56E181047A0AD15_.exe"
 $installerPath4 = "\\bos-ichannel\ichannel\web\ConarciFetch\Prerequisites\windowsdesktop-runtime-8.0.5-win-x64.exe"
 $installerPath5 = "\\bos-ichannel\ichannel\web\ConarciFetch\Setup\ConarciFetchInstaller.exe"
 
-#Dell command Update
-if (Test-Path $installerPath) {
-    Write-Host "Installer found. Running setup..."
-    Start-Process -FilePath $installerPath -Wait
-    Write-Host "Setup completed."
-} else {
-    Write-Host "Installer not found at path: $installerPath"
-}
 # Tvalue Install
 If(Test-Path $installerPath1) {
     Write-Host "T Value Found. Downloading..."
