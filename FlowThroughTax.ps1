@@ -1,4 +1,4 @@
-$installerPath = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4\Dell-Command-Update-Application_6VFWW_WIN_5.4.0_A00 (1).EXE"
+$installerPath = "F:\ADMIN\IS - Public\IS Department Team Folders\ZachH\Dell Command Update 5.4\DellCommandUpdate.EXE"
 $installerPath1 = "F:\APPS\TValue 6\TValue6-02-Setup.exe"
 $installerPath2 = "F:\APPS\CaseWare\Caseware 2023\ConnectorSetup.exe"
 $installerPath3 = "F:\APPS\CaseWare\Caseware 2023\WP2023USSYNC_630DD56E181047A0AD15_.exe"
