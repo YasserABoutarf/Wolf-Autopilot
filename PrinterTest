@@ -5,6 +5,7 @@ $printer1Port = "IP_192.168.4.10"
 $printer1Driver = "TOSHIBA e-STUDIO Universal PCL6"
 
 Add-PrinterPort -Name $printer1Port -PrinterHostAddress $printer1IP
+Test-NetConnection -PrinterName <TargetMachine> -Port <192.168.4.10>
 Add-Printer -Name $printer1Name -DriverName $printer1Driver -PortName $printer1Port
 
 #printer 2 
