@@ -1,1 +1,21 @@
+$ichannelprereq = "\\bos-ichannel\ichannel\web\ConarciFetch\Prerequisites\windowsdesktop-runtime-8.0.5-win-x64.exe"
+$ichannel = "\\bos-ichannel\ichannel\web\ConarciFetch\Setup\ConarciFetchInstaller.exe"
+ 
 
+#downloads ichannel prereqs
+If(Test-Path $ichannelprereq) {
+    Write-Host "Ichannel Prereqs are downloading..."
+    Start-Process -FilePath $ichannelprereq -Wait
+    Write-Host "Setup is complete"
+} else {
+    Write-Host "Download failed" 
+}
+
+#Downloads ichannel
+If(Test-Path $ichannel) {
+    Write-Host "Ichannel Prereqs are downloading..."
+    Start-Process -FilePath $ichannel -Wait
+    Write-Host "Setup is complete"
+} else {
+    Write-Host "Download failed" 
+}
