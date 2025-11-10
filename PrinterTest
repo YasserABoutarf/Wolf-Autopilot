@@ -6,3 +6,12 @@ $printer1Driver = "TOSHIBA e-STUDIO Universal PCL6"
 
 Add-PrinterPort -Name $printer1Port -PrinterHostAddress $printer1IP
 Add-Printer -Name $printer1Name -DriverName $printer1Driver -PortName $printer1Port
+
+#printer 2 
+$printer2Name = "Printer-Harbor1"
+$printer2IP = "192.168.4.5"
+$printer2Port = "IP_192.168.4.5"
+$printer2Driver = "HP LaserJet M806 PCL 6" 
+
+Add-PrinterPort -Name $printer2Port -PrinterHostAddress $printer2IP
+Add-Printer -Name $printer2Name -DriverName $printer2Driver -PortName $printer2Port
